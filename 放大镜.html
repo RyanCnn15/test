@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            height: 2000px;
+        }
+
+        .box {
+            width: 450px;
+            margin: 50px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .box>.show {
+            width: 420px;
+            height: 430px;
+            border: 1px solid #333;
+            position: relative;
+            text-align: center;
+            cursor: crosshair;
+        }
+
+        .box>.show>img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .box>.show>.mask {
+            width: 200px;
+            height: 200px;
+            background-color: skyblue;
+            opacity: .4;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            display: none;
+        }
+
+        .box>.list {
+            width: 100%;
+            flex: 1;
+
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+
+        .box>.list>p {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #333;
+            margin-right: 10px;
+            text-align: center;
+        }
+
+        .box>.list>p.active {
+            border-color: red;
+        }
+
+        .box>.enlarge {
+            /* 容器 与背景图的比例为 1 ：2 */
+            width: 500px;
+            height: 500px;
+            position: absolute;
+            top: 0px;
+            left: 450px;
+            background-size: 750px 1000px;
+            background-position: 0 0;
+            background-repeat: no-repeat;
+            border: 1px solid #ccc;
+            background-image: url(./images/img1_750x1000.jpg);
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <div class="show">
+            <img src="./images/img1_430x430.jpg">
+            <div class="mask"></div>
+        </div>
+        <div class="list">
+            <p class="active">
+                <img midelImg="./images/img1_430x430.jpg" bigImg="./images/img1_750x1000.jpg"
+                    src="./images/img1_60x60.jpg">
+            </p>
+            <p>
+                <img midelImg="./images/img2_430x430.jpg" bigImg="./images/img2_750x1000.jpg"
+                    src="./images/img2_60x60.jpg">
+            </p>
+            <p>
+                <img midelImg="./images/img3_430x430.jpg" bigImg="./images/img3_750x1000.jpg"
+                    src="./images/img3_60x60.jpg">
+            </p>
+            <p>
+                <img midelImg="./images/img4_430x430.jpg" bigImg="./images/img4_750x1000.jpg"
+                    src="./images/img4_60x60.jpg">
+            </p>
+            <p>
+                <img midelImg="./images/img5_430x430.jpg" bigImg="./images/img5_750x1000.jpg"
+                    src="./images/img5_60x60.jpg">
+            </p>
+        </div>
+        <div class="enlarge"></div>
+    </div>
+    <script>
+        /*
+            静态：
+            ele
+            动态：
+            move
+        */
+        class En {
+            constructor(ele) {
+                this.ele = ele;
+                this.init();
+            }
+            init() {
+                this.ele = document.querySelector(this.ele);
+                this.show = this.ele.querySelector(".show");
+                this.mask = this.ele.querySelector(".mask");
+                this.enlarge = this.ele.querySelector(".enlarge"),
+                    this.p = this.ele.querySelectorAll("p");
+                this.show.onmouseover = () => {
+                    this.mask.style.display = "block";
+                    this.enlarge.style.display = "block";
+                    this.setLarge();
+                }
+                this.show.onmousemove = (e) => {
+                    this.move(e);
+                }
+                this.show.onmouseout = () => {
+                    this.mask.style.display = "none";
+                    this.enlarge.style.display = "none";
+                }
+                this.p.forEach(item => {
+                    item.onclick = () => {
+                        this.change(item);
+                    }
+                });
+            }
+            move(e) {
+                let x = e.clientX - this.ele.offsetLeft - this.mask.offsetWidth / 2,
+                    y = e.pageY - this.ele.offsetTop - this.mask.offsetHeight / 2;
+                if (x <= 0) {
+                    x = 0;
+                }
+                if (y <= 0) {
+                    y = 0;
+                }
+                if (x >= this.show.offsetWidth - this.mask.offsetWidth) {
+                    x = this.show.offsetWidth - this.mask.offsetWidth
+                }
+                if (y >= this.show.offsetHeight - this.mask.offsetHeight) {
+                    y = this.show.offsetHeight - this.mask.offsetHeight
+                }
+                this.mask.style.left = x + "px";
+                this.mask.style.top = y + "px";
+
+                let bgW = parseInt(getComputedStyle(this.enlarge).backgroundSize.split(" ")[0]),
+                    bgH = parseInt(getComputedStyle(this.enlarge).backgroundSize.split(" ")[1]);
+                this.enlarge.style.backgroundPosition = `${-x*bgW/this.show.offsetWidth}px ${-y*bgH/this.show.offsetHeight}px`;
+            }
+            setLarge() {
+                let w = this.mask.offsetWidth / this.show.offsetWidth,
+                    h = this.mask.offsetHeight / this.show.offsetHeight,
+                    bgW = parseInt(getComputedStyle(this.enlarge).backgroundSize.split(" ")[0]),
+                    bgH = parseInt(getComputedStyle(this.enlarge).backgroundSize.split(" ")[1]);
+                this.enlarge.style.width = bgW * w + "px";
+                this.enlarge.style.height = bgH * h + "px";
+            }
+            change(item) {
+                this.p.forEach(item => {
+                    item.classList.remove("active");
+                });
+                item.classList.add("active");
+                this.show.children[0].src = item.children[0].getAttribute("midelImg");
+                this.enlarge.style.backgroundImage = `url(${item.children[0].getAttribute("bigImg")})`
+            }
+        }
+        var box = new En(".box");
+    </script>
+</body>
+
+</html>
